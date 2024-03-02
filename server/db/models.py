@@ -1,13 +1,13 @@
-from sqlalchemy import ForeignKey, DateTime, ForeignKeyConstraint, \
-    UniqueConstraint
+from datetime import date, datetime
+
+from sqlalchemy import DateTime, ForeignKeyConstraint, UniqueConstraint
 from sqlalchemy.orm import (
     DeclarativeBase,
     Mapped,
     declared_attr,
-    relationship,
     mapped_column,
+    relationship,
 )
-from datetime import date, datetime
 
 
 class Base(DeclarativeBase):
@@ -55,7 +55,6 @@ class Product(Base):
 
     __table_args__ = (
         ForeignKeyConstraint(
-            ["task_number", "task_date"],
-            [Task.task_number, Task.task_date]
+            ["task_number", "task_date"], [Task.task_number, Task.task_date]
         ),
     )

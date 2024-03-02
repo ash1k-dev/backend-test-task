@@ -1,12 +1,12 @@
-from datetime import datetime, timezone
-from fastapi import HTTPException, status
+from datetime import datetime
 
+from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from server.schemas.products import ProductCreate
-from server.db.models import Task, Product
 from server.db.database import async_session_maker
+from server.db.models import Product, Task
+from server.schemas.products import ProductCreate
 from server.schemas.tasks import TaskCreate, TaskRead, TaskUpdate
 
 
@@ -60,7 +60,7 @@ class TaskRepository:
                 for field, value in update_data.dict(exclude_unset=True).items():
                     setattr(task_model, field, value)
                     if field == "task_status":
-                        if value == True:
+                        if value:
                             task_model.closed_at = datetime.now().astimezone()
                         else:
                             task_model.closed_at = None
@@ -88,7 +88,7 @@ class ProductRepository:
                 ) not in task_models or product.product_code in product_models:
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
-                        detail=f"there is no task number with this date or code are not unique",
+                        detail="there is no task number with this date or code are not unique",
                     )
                 session.add(Product(**product.model_dump()))
             await session.commit()

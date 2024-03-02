@@ -1,8 +1,8 @@
 from fastapi import APIRouter
 from pydantic import ValidationError
 
-from server.schemas.tasks import TaskCreate, TaskRead, TaskUpdate
 from server.db.crud import TaskRepository
+from server.schemas.tasks import TaskCreate, TaskRead, TaskUpdate
 
 router_tasks = APIRouter(
     tags=["tasks"],
