@@ -19,12 +19,21 @@ class TaskRepository:
     """Класс для работы с задачами"""
 
     @classmethod
-    async def create_tasks(cls, tasks: list[TaskCreate]) -> None:
+    async def add_tasks(cls, tasks: list[TaskCreate]) -> None:
         """Создание задач"""
         async with async_session_maker() as session:
-            task_data = [task.model_dump() for task in tasks]
-            session.add_all([Task(**data) for data in task_data])
-            await session.commit()
+            for task in tasks:
+                statement = select(Task).where(
+                    Task.task_number == task.task_number,
+                    Task.task_date == task.task_date,
+                )
+                result = await session.execute(statement)
+                task_models = result.scalar_one_or_none()
+                if task_models:
+                    await session.delete(task_models)
+                    await session.commit()
+                session.add(Task(**task.model_dump()))
+                await session.commit()
 
     @classmethod
     async def get_tasks(cls) -> list[TaskRead]:
@@ -53,14 +62,6 @@ class TaskRepository:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND, detail="Task not found"
                 )
-
-    @classmethod
-    async def add_tasks(cls, tasks: list[TaskCreate]) -> None:
-        """Добавление задач"""
-        async with async_session_maker() as session:
-            task_data = [task.model_dump() for task in tasks]
-            session.add_all([Task(**data) for data in task_data])
-            await session.commit()
 
     @classmethod
     async def update_task(cls, task_id: int, update_data: TaskUpdate) -> None:
@@ -94,16 +95,18 @@ class ProductRepository:
             statement = select(Product.product_code)
             result = await session.execute(statement)
             product_models = result.all()
+            product_list = []
             for product in products:
                 if (
                     product.task_number,
                     product.task_date,
-                ) not in task_models or product.product_code in product_models:
+                ) not in task_models or ((product.product_code,) in product_models):
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
                         detail="there is no task number with this date or code are not unique",
                     )
-                session.add(Product(**product.model_dump()))
+                product_list.append(Product(**product.model_dump()))
+            session.add_all(product_list)
             await session.commit()
 
     @classmethod
@@ -131,7 +134,6 @@ class ProductRepository:
                     else:
                         product_models.is_aggregated = True
                         product_models.aggregated_at = datetime.now()
-                        # product_models.aggregated_at = datetime.now(pytz.utc)
                         await session.commit()
                 else:
                     raise HTTPException(
