@@ -7,7 +7,7 @@ from sqlalchemy.orm import selectinload
 from server.db.database import async_session_maker
 from server.db.models import Product, Task
 from server.schemas.products import ProductCreate
-from server.schemas.tasks import TaskCreate, TaskRead, TaskUpdate
+from server.schemas.tasks import TaskCreate, TaskFilter, TaskRead, TaskUpdate
 
 
 def to_pydantic(db_object, pydantic_model):
@@ -36,10 +36,17 @@ class TaskRepository:
                 await session.commit()
 
     @classmethod
-    async def get_tasks(cls) -> list[TaskRead]:
+    async def get_tasks(
+        cls, filters: TaskFilter, offset: int = 0, limit: int = 100
+    ) -> list[TaskRead]:
         """Получение задач"""
         async with async_session_maker() as session:
-            statement = select(Task)
+            statement = (
+                select(Task)
+                .filter_by(**filters.model_dump(exclude_none=True))
+                .offset(offset)
+                .limit(limit)
+            )
             result = await session.execute(statement)
             task_models = result.scalars().all()
             tasks = [to_pydantic(task_model, TaskRead) for task_model in task_models]

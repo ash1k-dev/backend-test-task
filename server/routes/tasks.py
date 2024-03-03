@@ -1,8 +1,7 @@
-from fastapi import APIRouter
-from pydantic import ValidationError
+from fastapi import APIRouter, Depends
 
 from server.db.crud import TaskRepository
-from server.schemas.tasks import TaskCreate, TaskRead, TaskUpdate
+from server.schemas.tasks import TaskCreate, TaskFilter, TaskRead, TaskUpdate
 
 router_tasks = APIRouter(
     tags=["tasks"],
@@ -11,17 +10,18 @@ router_tasks = APIRouter(
 
 
 @router_tasks.get("/")
-async def get_tasks() -> list[TaskRead]:
+async def get_tasks(
+    offset: int = 0,
+    limit: int = 100,
+    filters: TaskFilter = Depends(),
+) -> list[TaskRead]:
     """Получение списка задач"""
-    try:
-        result = await TaskRepository.get_tasks()
-        return result
-    except ValidationError as e:
-        print(e.json())
+    result = await TaskRepository.get_tasks(filters=filters, offset=offset, limit=limit)
+    return result
 
 
 @router_tasks.get("/{task_id}")
-async def get_task(task_id: int):
+async def get_task(task_id: int) -> TaskRead:
     """Получение задачи по id"""
     result = await TaskRepository.get_task(task_id=task_id)
     return result

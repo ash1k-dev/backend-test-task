@@ -52,12 +52,27 @@ class TaskRead(BaseModel):
 class TaskUpdate(BaseModel):
     """Схема обновления задания"""
 
-    task_status: Optional[bool]
-    shift_task_submission: Optional[str]
-    line: Optional[str]
-    shift: Optional[str]
-    squad: Optional[str]
-    task_number: Optional[int]
-    nomenclature: Optional[str]
-    code_ekn: Optional[str]
-    identifier_rc: Optional[str]
+    task_status: bool
+    shift_task_submission: str
+    line: str
+    shift: str
+    squad: str
+    task_number: int
+    nomenclature: str
+    code_ekn: str
+    identifier_rc: str
+
+
+class TaskFilter(BaseModel):
+    """Схема фильтрации задания"""
+
+    task_status: bool | None = None
+    shift_task_submission: str | None = None
+    line: str | None = None
+    shift: str | None = None
+    squad: str | None = None
+    task_number: int | None = None
+    task_date: date | None = None
+    nomenclature: str | None = None
+    code_ekn: str | None = None
+    identifier_rc: str | None = None
