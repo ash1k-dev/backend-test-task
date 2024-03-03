@@ -7,6 +7,8 @@ from server.schemas.products import ProductRead
 
 
 class TaskCreate(BaseModel):
+    """Схема создание задания"""
+
     task_status: bool = Field(..., validation_alias="СтатусЗакрытия")
     shift_task_submission: str = Field(
         ..., validation_alias="ПредставлениеЗаданияНаСмену"
@@ -24,6 +26,8 @@ class TaskCreate(BaseModel):
 
 
 class TaskRead(BaseModel):
+    """Схема чтения задания"""
+
     id: int
     task_status: bool
     shift_task_submission: str
@@ -42,16 +46,14 @@ class TaskRead(BaseModel):
 
 
 class TaskUpdate(BaseModel):
+    """Схема обновления задания"""
+
     task_status: Optional[bool]
     shift_task_submission: Optional[str]
     line: Optional[str]
     shift: Optional[str]
     squad: Optional[str]
     task_number: Optional[int]
-    task_date: Optional[date]
     nomenclature: Optional[str]
     code_ekn: Optional[str]
     identifier_rc: Optional[str]
-    start_time: Optional[datetime]
-    end_time: Optional[datetime]
-    closed_at: Optional[datetime]

@@ -12,6 +12,7 @@ router_tasks = APIRouter(
 
 @router_tasks.get("/")
 async def get_tasks() -> list[TaskRead]:
+    """Получение списка задач"""
     try:
         result = await TaskRepository.get_tasks()
         return result
@@ -21,6 +22,7 @@ async def get_tasks() -> list[TaskRead]:
 
 @router_tasks.get("/{task_id}")
 async def get_task(task_id: int):
+    """Получение задачи по id"""
     result = await TaskRepository.get_task(task_id=task_id)
     return result
 
@@ -29,9 +31,11 @@ async def get_task(task_id: int):
 async def add_tasks(
     tasks: list[TaskCreate],
 ):
+    """Добавление задач"""
     await TaskRepository.add_tasks(tasks=tasks)
 
 
 @router_tasks.patch("/{task_id}")
 async def update_task(task_id: int, update_data: TaskUpdate):
+    """Обновление задачи"""
     await TaskRepository.update_task(task_id=task_id, update_data=update_data)

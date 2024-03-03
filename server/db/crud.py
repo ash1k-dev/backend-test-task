@@ -11,12 +11,24 @@ from server.schemas.tasks import TaskCreate, TaskRead, TaskUpdate
 
 
 def to_pydantic(db_object, pydantic_model):
+    """Преобразование объекта базы данных в модель Pydantic"""
     return pydantic_model(**db_object.__dict__)
 
 
 class TaskRepository:
+    """Класс для работы с задачами"""
+
+    @classmethod
+    async def create_tasks(cls, tasks: list[TaskCreate]) -> None:
+        """Создание задач"""
+        async with async_session_maker() as session:
+            task_data = [task.model_dump() for task in tasks]
+            session.add_all([Task(**data) for data in task_data])
+            await session.commit()
+
     @classmethod
     async def get_tasks(cls) -> list[TaskRead]:
+        """Получение задач"""
         async with async_session_maker() as session:
             statement = select(Task)
             result = await session.execute(statement)
@@ -26,11 +38,12 @@ class TaskRepository:
 
     @classmethod
     async def get_task(cls, task_id: int) -> TaskRead:
+        """Получение задачи"""
         async with async_session_maker() as session:
             statement = (
                 select(Task)
                 .where(Task.id == task_id)
-                .options(selectinload(Task.products).load_only(Product.id))
+                .options(selectinload(Task.products).load_only(Product.product_code))
             )
             result = await session.execute(statement)
             task_model = result.scalar_one_or_none()
@@ -43,15 +56,15 @@ class TaskRepository:
 
     @classmethod
     async def add_tasks(cls, tasks: list[TaskCreate]) -> None:
+        """Добавление задач"""
         async with async_session_maker() as session:
-            for task in tasks:
-                data = task.model_dump()
-                new_task = Task(**data)
-                session.add(new_task)
-                await session.commit()
+            task_data = [task.model_dump() for task in tasks]
+            session.add_all([Task(**data) for data in task_data])
+            await session.commit()
 
     @classmethod
     async def update_task(cls, task_id: int, update_data: TaskUpdate) -> None:
+        """Обновление задачи"""
         async with async_session_maker() as session:
             statement = select(Task).where(Task.id == task_id)
             result = await session.execute(statement)
@@ -59,11 +72,8 @@ class TaskRepository:
             if task_model:
                 for field, value in update_data.dict(exclude_unset=True).items():
                     setattr(task_model, field, value)
-                    if field == "task_status":
-                        if value:
-                            task_model.closed_at = datetime.now().astimezone()
-                        else:
-                            task_model.closed_at = None
+                    if field == "task_status" and value:
+                        task_model.closed_at = datetime.now() if value else None
                 await session.commit()
             else:
                 raise HTTPException(
@@ -72,8 +82,11 @@ class TaskRepository:
 
 
 class ProductRepository:
+    """Класс для работы с продуктами"""
+
     @classmethod
     async def create_products(cls, products: list[ProductCreate]) -> None:
+        """Создание продуктов"""
         async with async_session_maker() as session:
             statement = select(Task.task_number, Task.task_date)
             result = await session.execute(statement)
@@ -95,6 +108,7 @@ class ProductRepository:
 
     @classmethod
     async def aggregate_product(cls, task_number: int, product_code: str):
+        """Агрегирование продукта"""
         async with async_session_maker() as session:
             statement = select(Task).where(
                 Task.task_number == task_number,
@@ -117,6 +131,7 @@ class ProductRepository:
                     else:
                         product_models.is_aggregated = True
                         product_models.aggregated_at = datetime.now()
+                        # product_models.aggregated_at = datetime.now(pytz.utc)
                         await session.commit()
                 else:
                     raise HTTPException(
