@@ -1,9 +1,9 @@
 from datetime import date, datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
-from server.schemas.products import ProductRead
+from server.db.models import Product
 
 
 class TaskCreate(BaseModel):
@@ -42,7 +42,11 @@ class TaskRead(BaseModel):
     start_time: datetime
     end_time: datetime
     closed_at: Optional[datetime] = None
-    products: List[ProductRead] = None
+    products: List[str] = []
+
+    @field_validator("products", mode="before")
+    def convert_products(cls, value: list[Product]):
+        return [product.product_code for product in value]
 
 
 class TaskUpdate(BaseModel):
