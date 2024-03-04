@@ -46,6 +46,7 @@ class TaskRead(BaseModel):
 
     @field_validator("products", mode="before")
     def convert_products(cls, value: list[Product]):
+        """Конвертация списка продуктов в список кодов продуктов"""
         return [product.product_code for product in value]
 
 

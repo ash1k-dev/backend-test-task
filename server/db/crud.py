@@ -158,7 +158,12 @@ class ProductRepository(AbstractProductRepository):
         )
         result = await self.session.execute(statement)
         task_models = result.scalar_one_or_none()
-        if task_models:
+        if task_models.task_status:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="task is closed",
+            )
+        elif task_models:
             statement = select(Product).where(
                 Product.product_code == product_code,
                 Product.task_number == task_number,
