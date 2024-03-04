@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from datetime import datetime
 
 from fastapi import HTTPException, status
@@ -15,7 +16,35 @@ def to_pydantic(db_object, pydantic_model):
     return pydantic_model(**db_object.__dict__)
 
 
-class TaskRepository:
+class AbstractTaskRepository(ABC):
+    """Абстрактная реализация репозитория задач"""
+
+    @classmethod
+    @abstractmethod
+    async def add_tasks(cls, tasks: list[TaskCreate]):
+        """Создание задач"""
+        pass
+
+    @classmethod
+    @abstractmethod
+    async def get_tasks(cls, filters: TaskFilter, offset: int = 0, limit: int = 100):
+        """Получение задач"""
+        pass
+
+    @classmethod
+    @abstractmethod
+    async def get_task(cls, task_id: int):
+        """Получение задачи"""
+        pass
+
+    @classmethod
+    @abstractmethod
+    async def update_task(cls, task_id: int, update_data: TaskUpdate):
+        """Обновление задачи"""
+        pass
+
+
+class TaskRepository(AbstractTaskRepository):
     """Класс для работы с задачами"""
 
     @classmethod
@@ -89,7 +118,23 @@ class TaskRepository:
                 )
 
 
-class ProductRepository:
+class AbstractProductRepository(ABC):
+    """Абстрактная реализация репозитория продуктов"""
+
+    @classmethod
+    @abstractmethod
+    async def create_products(cls, products: list[ProductCreate]):
+        """Создание продуктов"""
+        pass
+
+    @classmethod
+    @abstractmethod
+    async def aggregate_product(cls, task_number: int, product_code: str):
+        """Агрегирование продукта"""
+        pass
+
+
+class ProductRepository(AbstractProductRepository):
     """Класс для работы с продуктами"""
 
     @classmethod
@@ -151,3 +196,13 @@ class ProductRepository:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND, detail="Task not found"
                 )
+
+
+async def get_task_crud() -> AbstractTaskRepository:
+    """Фабрика репозиториев задач"""
+    return TaskRepository()
+
+
+async def get_product_crud() -> AbstractProductRepository:
+    """Фабрика репозиториев продуктов"""
+    return ProductRepository()
