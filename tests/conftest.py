@@ -1,11 +1,15 @@
 import asyncio
+from typing import AsyncGenerator
 
 import pytest
 import pytest_asyncio
+from db.database import get_db
+from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from config import DB_URL_TEST
 from server.db import models
+from server.main import app
 
 engine = create_async_engine(DB_URL_TEST, echo=True)
 async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
@@ -32,3 +36,17 @@ async def db() -> None:
 async def session() -> AsyncSession:
     async with async_session() as session:
         yield session
+
+
+@pytest.fixture()
+async def ac() -> AsyncGenerator[AsyncClient, None]:
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        yield ac
+
+
+async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
+    async with async_session() as session:
+        yield session
+
+
+app.dependency_overrides[get_db] = get_async_session
