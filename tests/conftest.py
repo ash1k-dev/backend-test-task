@@ -3,12 +3,12 @@ from typing import AsyncGenerator
 
 import pytest
 import pytest_asyncio
-from db.database import get_db
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from config import DB_URL_TEST
 from server.db import models
+from server.db.database import get_db
 from server.main import app
 
 engine = create_async_engine(DB_URL_TEST, echo=True)

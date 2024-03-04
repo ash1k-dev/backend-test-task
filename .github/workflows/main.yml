@@ -19,13 +19,13 @@ jobs:
         pip install -r requirements.txt
     - name: Test with isort
       run: |
-        python -m isort --diff --check core
+        python -m isort --diff --check server
     - name: Test with black
       run: |
-        python -m black --diff --check core
+        python -m black --diff --check server
     - name: Test with flake8
       run: |
-        python -m flake8 core
+        python -m flake8 server
     - name: Test with pytest
       run: |
         python -m pytest
@@ -49,6 +49,6 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: ./server
-          file: ./server/Dockerfile
+          file: ./Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/backend-test-task:latest
