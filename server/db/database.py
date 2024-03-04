@@ -1,5 +1,3 @@
-from typing import AsyncGenerator
-
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from config import DB_URL
@@ -11,7 +9,10 @@ async_session_maker = async_sessionmaker(
 )
 
 
-async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
-    """Получение сессии для работы с БД"""
-    async with async_session_maker() as session:
+async def get_db():
+    """Асинхронный генератор сессий"""
+    session = async_session_maker()
+    try:
         yield session
+    finally:
+        await session.close()
