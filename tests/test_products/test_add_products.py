@@ -1,9 +1,9 @@
 import pytest
-from db.models import Product
 from httpx import AsyncClient
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from server.db.models import Product
 from tests.test_products.products_test_data import LIST_DATA_PRODUCTS_TASKS
 
 
