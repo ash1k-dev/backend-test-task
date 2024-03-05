@@ -2,7 +2,7 @@ from typing import List
 
 from fastapi import APIRouter, Depends
 
-from server.db.crud import AbstractProductRepository, get_product_crud
+from server.db.crud.products import AbstractProductRepository, get_product_crud
 from server.schemas.products import ProductCreate
 
 router_products = APIRouter(
@@ -22,7 +22,7 @@ async def add_products(
     await crud.create_products(products=products)
 
 
-@router_products.get("/aggregate")
+@router_products.get("/aggregate/{task_number}/{product_code}")
 async def get_aggregate(
     task_number: int,
     product_code: str,
